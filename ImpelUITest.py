@@ -1,6 +1,8 @@
 import pytest
-import sys
+import requests
 import time
+from bs4 import BeautifulSoup
+import sys
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -40,7 +42,7 @@ def test_admin_login(browser):
     main_page_url = inputs["main_page_url"]
     admin_username = inputs["admin_username"]
     admin_password = inputs["admin_password"]
-
+    
     browser.get(login_page_url)
 
     username_input = browser.find_element(By.ID, 'email')
@@ -48,20 +50,15 @@ def test_admin_login(browser):
     username_input.send_keys(admin_username)
     password_input.send_keys(admin_password)
     password_input.send_keys(Keys.RETURN)
+    submit_button = browser.find_element(By.ID, 'submit')
+    
 
-    WebDriverWait(browser, 10).until(
-        EC.presence_of_element_located((By.TAG_NAME, "body"))
-    )
+    # Click on the "Submit" button
+    submit_button.click()
+    WebDriverWait(browser, 1).until(EC.url_to_be(main_page_url))
+    
 
-    status_code = browser.execute_script("""
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', arguments[0], false);  // Synchronous request
-    xhr.send(null);
-    return xhr.status;
-    """, browser.current_url)
-
-    assert status_code == 200, f"Expected status code 200, but got {status_code}"
-
+    assert browser.current_url == main_page_url, f"Login failed. Expected URL: {main_page_url}, Actual URL: {browser.current_url}"
 
 if __name__ == '__main__':
     pytest.main()
